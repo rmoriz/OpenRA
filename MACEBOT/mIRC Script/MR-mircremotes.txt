@@ -1,0 +1,107 @@
+on 2:TEXT:*!auth*:#: {
+  addauth $chan
+  msg $chan [MACEREGULATOR] Temporary Override Auth Code Granted to $nick
+  msg #mace [MACEREGULATOR] Temporary Override Auth Code Granted to $nick from $chan
+  msg $nick 4AUTHORIZATION CODE FOR $chan
+  msg $nick  %authgen
+}
+
+on 2:TEXT:!msg*:#: {
+  var %botaddr = $hget(botchans,$chan)
+  msg %botaddr $+($str(csay:,1),$chr(32),%cmsgtick,$chr(44),$str([MACE],1),$chr(32),$nick,$str(@IRC:,1),$chr(32),$2-)
+  msg #mace [MACEREGULATOR] $nick to $chan msg: $2- 
+  inc %cmsgtick 1
+}
+
+on +5:JOIN:# {
+  msg $chan [MACEREGULATOR] $nick is an ingame Global Administrator
+  var %botaddr = $hget(botchans,$chan)
+  msg %botaddr $+($str(csay:,1),$chr(32),%cmsgtick,$chr(44),$str([MACE],1),$chr(32),$nick,$chr(32),$str(has joined IRC. Level:,1),$chr(32),$str(Global Administrator,1))
+  inc %cmsgtick 1
+}
+
+on +3:JOIN:# {
+  msg $chan [MACEREGULATOR] $nick is a Global Ingame Moderator
+  var %botaddr = $hget(botchans,$chan)
+  msg %botaddr $+($str(csay:,1),$chr(32),%cmsgtick,$chr(44),$str([MACE],1),$chr(32),$nick,$chr(32),$str(has joined IRC. Level:,1),$chr(32),$str(Global Moderator,1))
+  inc %cmsgtick 1
+}
+
+on +2:JOIN:# {
+  msg $chan [MACEREGULATOR] $nick is a Local Ingame Moderator
+  var %botaddr = $hget(botchans,$chan)
+  msg %botaddr $+($str(csay:,1),$chr(32),%cmsgtick,$chr(44),$str([MACE],1),$chr(32),$nick,$chr(32),$str(has joined IRC. Level:,1),$chr(32),$str(Local Moderator,1))
+  inc %cmsgtick 1
+}
+
+
+on *:TEXT:*!skick*:#: {
+  if ($regex($1-,/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/g)) var %theIP = $regml(1)
+  if ($regml(0) > 1) && ($left(%theIP,5) isin $left($1-,5)) {
+    msg $chan Error Requestor has IP in player name. Aborting.
+    halt
+  }
+  else {
+  if (($regml(0) > 1)) var %theIP = $regml(2) }
+  else {
+    if (($regml(0) == 1)) var %theIP = $regml(1)
+  }
+  var %parsedauth = $right($1-,5)
+  var %chancheck = $hget(tmpauth,%parsedauth)
+  var %botaddr = $hget(botchans,$chan)
+  if (($chan = %chancheck)) {
+    msg $chan Authentication %parsedauth accepted for %chancheck
+    msg #mace Authentication %parsedauth accepted for %chancheck and $nick
+    if ($ipsanitycheck(%theIP) = invalidip ) { msg $chan Invalid IP address } 
+    msg $chan [MACEREGULATOR] Kicking IP $ipsanitycheck(%theIP)
+    msg #mace [MACEREGULATOR] Kicking IP $ipsanitycheck(%theIP) from $chan
+    msg %botaddr $+($str(csay:,1),$chr(32),%cmsgtick,$chr(44),$str([MACE],1),$chr(32),$str(Kicking,1),$chr(32),%theIP,$chr(32)))
+    msg %botaddr $+($str(kick:,1),$chr(32),$ipsanitycheck(%theIP))
+    inc %cmsgtick 1
+  hdel tmpauth %parsedauth }
+  else { msg $chan Authentication Failed. Please use !auth to obtain an auth code. }
+}
+
+on *:TEXT:*!discord*:#: {
+  if (%flood.timer) return
+  inc -u180 %flood.timer
+  var %botaddr = $hget(botchans,$chan)
+  msg %botaddr $+($str(csay:,1),$chr(32),%cmsgtick,$chr(44),$str([MACE],1),$chr(32),$str(Discord Address: discord.gg/wjDbGW8 ,1))
+  msg $chan $+($str(csay:,1),$chr(32),%cmsgtick,$chr(44),$str([MACE],1),$chr(32),$str(Discord Address: discord.gg/wjDbGW8 ,1))
+  inc %cmsgtick 1
+}
+
+on *:TEXT:*!stream*:#: {
+  if (%flood.timer) return
+  inc -u180 %flood.timer
+  var %botaddr = $hget(botchans,$chan)
+  msg %botaddr $+($str(csay:,1),$chr(32),%cmsgtick,$chr(44),$str([MACE],1),$chr(32),$str(Twitch Stream: twitch.tv/abarrat ,1))
+  msg $chan $+($str(csay:,1),$chr(32),%cmsgtick,$chr(44),$str([MACE],1),$chr(32),$str(Twitch Stream: twitch.tv/abarrat ,1))
+  inc %cmsgtick 1
+}
+
+
+on *:TEXT:*Chat*:#: {
+  if ($regex($1-,/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/g)) {
+    var %botaddr = $hget(botchans,$chan)
+    if (($regml(0) == 1)) {
+      var %theIP = $regml(1)
+      inc -u3 % [ $+ [ $+(cTF.,$str(%theIP,1)) ] ]
+      if (% [ $+ [ $+(cTF.,$str(%theIP,1)) ] ] == 11) {
+        msg %botaddr $+($str(csay:,1),$chr(32),%cmsgtick,$chr(44),$str([MACE],1),$chr(32),$str(Kicking,1),$chr(32),%theIP,$chr(32),$str(for flooding.,1))
+        msg %botaddr $+($str(kick:,1),$chr(32),$ipsanitycheck(%theIP))
+        inc %cmsgtick 1
+      }
+    }
+
+    if (($regml(0) > 1)) {
+      var %theIP = $regml(2)
+      inc -u3 % [ $+ [ $+(cTF.,$str(%theIP,1)) ] ]
+      if (% [ $+ [ $+(cTF.,$str(%theIP,1)) ] ] == 11) {
+        msg %botaddr $+($str(csay:,1),$chr(32),%cmsgtick,$chr(44),$str([MACE],1),$chr(32),$str(Kicking,1),$chr(32),%theIP,$chr(32),$str(for flooding.,1))
+        msg %botaddr $+($str(kick:,1),$chr(32),$ipsanitycheck(%theIP))
+        inc %cmsgtick 1
+      }
+    }
+  }
+}

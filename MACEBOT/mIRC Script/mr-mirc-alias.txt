@@ -1,0 +1,18 @@
+initialize {
+  hmake botchans
+  hload -is botchans botchans.ini
+  set %cmsgtick 10000
+  echo -a %cmsgtick
+}
+
+addauth {
+  set %authgen $+($rand(A,Z),$rand(10,99),$rand(A,Z),$rand(0,9))
+  echo -a $1 %authgen
+  hadd -msu90 tmpauth %authgen $1
+}
+
+
+ipsanitycheck {
+  if ((127.0.0.1 isin $1)) { return invalidip }
+  else { return $1 }
+}

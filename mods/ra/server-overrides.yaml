@@ -1,0 +1,6 @@
+Player:
+	Shroud:
+		ExploredMapCheckboxEnabled: true
+World:
+	CrateSpawner:
+		CheckboxEnabled: false
